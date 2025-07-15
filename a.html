@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rieze | Web Developer</title>
+    <style>
+        /* ================================== */
+        /* SETUP & VARIABLES                 */
+        /* ================================== */
+        :root {
+            --bg-color: #FDF6EC;
+            --text-color: #111111;
+            --accent-color: #F89E28;
+            --surface-color: #FFFFFF;
+            --border-width: 3px;
+            --shadow-offset: 5px;
+            --border-radius: 12px;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            /* Padding added via JS to avoid player overlap */
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ================================== */
+        /* HEADER & NAVIGATION                 */
+        /* ================================== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            background-color: var(--bg-color);
+            transition: box-shadow 0.3s;
+        }
+
+        .header.scrolled {
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .menu-toggle {
+            cursor: pointer;
+            z-index: 1003;
+            width: 50px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--surface-color);
+            border: var(--border-width) solid var(--text-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
+            transition: all 0.2s ease-out;
+        }
+        .menu-toggle:active {
+            transform: translate(var(--shadow-offset), var(--shadow-offset));
+            box-shadow: none;
+        }
+        
+        .hamburger {
+            width: 24px;
+            height: 3px;
+            background: var(--text-color);
+            position: relative;
+            transition: all 0.3s ease-in-out;
+        }
+        .hamburger::before, .hamburger::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--text-color);
+            transition: all 0.3s ease-in-out;
+        }
+        .hamburger::before { top: -8px; }
+        .hamburger::after { top: 8px; }
+
+        body.menu-open .menu-toggle {
+            box-shadow: none;
+            transform: translate(var(--shadow-offset), var(--shadow-offset));
+        }
+        body.menu-open .hamburger { background: transparent; }
+        body.menu-open .hamburger::before { transform: rotate(45deg) translate(5px, 6px); }
+        body.menu-open .hamburger::after { transform: rotate(-45deg) translate(5px, -6px); }
+        
+        #menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        #menu-overlay.open { opacity: 1; visibility: visible; }
+        
+        .slide-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 300px;
+            height: 100%;
+            background-color: var(--bg-color);
+            border-left: var(--border-width) solid var(--text-color);
+            z-index: 1002;
+            transition: right 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            padding: 100px 20px 20px;
+        }
+        body.menu-open .slide-menu { right: 0; }
+        .slide-menu ul { list-style: none; }
+        .slide-menu ul li { margin-bottom: 20px; }
+        .slide-menu a {
+            display: block;
+            text-align: center;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--text-color);
+            background: var(--surface-color);
+            border: var(--border-width) solid var(--text-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
+            transition: all 0.2s ease-out;
+        }
+        .slide-menu a:hover { background-color: #f0f0f0; }
+        .slide-menu a.active, .slide-menu a:active {
+            background-color: var(--accent-color);
+            transform: translate(var(--shadow-offset), var(--shadow-offset));
+            box-shadow: none;
+        }
+
+        /* ================================== */
+        /* UI COMPONENTS                     */
+        /* ================================== */
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--text-color);
+            background-color: var(--accent-color);
+            border: var(--border-width) solid var(--text-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
+            transition: all 0.2s ease-out;
+        }
+        .btn:hover {
+            background-color: #ffb041;
+        }
+        .btn:active {
+            transform: translate(var(--shadow-offset), var(--shadow-offset));
+            box-shadow: none;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        
+        section {
+            padding: 80px 0;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* ================================== */
+        /* PAGE SECTIONS                      */
+        /* ================================== */
+        
+        #hero {
+            padding-top: 150px;
+            padding-bottom: 120px;
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        .greeting-chip {
+            display: inline-block;
+            background-color: var(--accent-color);
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: var(--border-width) solid var(--text-color);
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        .hero-title {
+            font-size: clamp(2.5rem, 10vw, 5.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+        .hero-title span { color: var(--accent-color); }
+        .hero-bio {
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .hero-img-deco {
+            position: absolute;
+            top: 80px;
+            right: -80px;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background-color: var(--surface-color);
+            border: var(--border-width) solid var(--text-color);
+            background-image: url('https://i.pinimg.com/736x/09/21/fc/0921fc2ac6c1e92153b6f0a0a5796417.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+        }
+        
+        .skills-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 50px;
+        }
+        .progress-bar {
+            margin-bottom: 20px;
+        }
+        .progress-bar .label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .progress-track {
+            height: 25px;
+            background-color: var(--surface-color);
+            border: var(--border-width) solid var(--text-color);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent-color);
+            border-radius: 15px 0 0 15px;
+        }
+        .tech-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        .tech-tag {
+            padding: 10px 20px;
+            background-color: var(--surface-color);
+            border: var(--border-width) solid var(--text-color);
+            border-radius: var(--border-radius);
+            font-weight: 700;
+            box-shadow: 4px 4px 0 var(--text-color);
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        .gallery-card {
+            background-color: var(--surface-color);
+            border: var(--border-width) solid var(--text-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
+            padding: 20px;
+        }
+        .gallery-card h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .gallery-card p {
+            color: #757575;
+            font-weight: 500;
+        }
+        .rating {
+            color: #d97706;
+            font-weight: 700;
+        }
+        
+        .contact-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        .contact-links a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 25px;
+            text-decoration: none;
+            color: var(--text-color);
+            background-color: var(--surface-color);
+            border: var(--border-width) solid var(--text-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
+            transition: all 0.2s ease-out;
+            font-weight: 700;
+        }
+        .contact-links a:hover {
+            background-color: #f0f0f0;
+        }
+        .contact-links a:active {
+            transform: translate(var(--shadow-offset), var(--shadow-offset));
+            box-shadow: none;
+        }
+        .contact-links a svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: var(--border-width) solid var(--text-color);
+            margin-top: 50px;
+        }
+        
+        /* ================================== */
+        /* MUSIC PLAYER                      */
+        /* ================================== */
+        #music-player {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 450px;
+            background-color: var(--surface-color);
+            border: var(--border-width) solid var(--text-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1), var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
+            display: grid;
+            grid-template-areas:
+                "art details controls"
+                "art progress progress";
+            grid-template-columns: auto 1fr auto;
+            grid-template-rows: auto auto;
+            gap: 0 15px;
+            padding: 15px;
+            z-index: 999;
+        }
+        #album-art {
+            grid-area: art;
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .song-details {
+            grid-area: details;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        #song-title {
+            font-weight: 700;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        #song-artist {
+            font-weight: 500;
+            color: #888;
+            font-size: 0.9em;
+        }
+        #play-pause-btn {
+            grid-area: controls;
+            cursor: pointer;
+            width: 45px;
+            height: 45px;
+            border: none;
+            background: none;
+            align-self: center;
+        }
+        #play-pause-btn svg {
+            width: 100%;
+            height: 100%;
+        }
+        .pause-icon { display: none; }
+        #play-pause-btn.playing .play-icon { display: none; }
+        #play-pause-btn.playing .pause-icon { display: block; }
+
+        .progress-container {
+            grid-area: progress;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-top: 10px;
+        }
+        .time-display {
+            font-size: 0.8em;
+            font-weight: 500;
+            color: #888;
+        }
+        .progress-bar-wrapper {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .progress-bar-fill {
+            width: 0%;
+            height: 100%;
+            background-color: var(--accent-color);
+            border-radius: 4px;
+        }
+
+        /* ================================== */
+        /* RESPONSIVE DESIGN                 */
+        /* ================================== */
+
+        @media (max-width: 768px) {
+            .hero-img-deco {
+                width: 120px;
+                height: 120px;
+                right: -20px;
+                top: 50px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #music-player {
+                grid-template-areas:
+                    "art details controls"
+                    "progress progress progress";
+                grid-template-columns: auto 1fr auto;
+                padding: 10px;
+            }
+            #album-art {
+                width: 50px;
+                height: 50px;
+            }
+            .progress-container {
+                padding-top: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="container">
+            <a href="#" class="logo">RIEZE.</a>
+            <div class="menu-toggle" id="menu-toggle">
+                <div class="hamburger"></div>
+            </div>
+        </div>
+    </header>
+
+    <div id="menu-overlay"></div>
+    
+    <nav class="slide-menu" id="slide-menu">
+        <ul>
+            <li><a href="#hero" class="nav-link">Home</a></li>
+            <li><a href="#skills" class="nav-link">Skills</a></li>
+            <li><a href="#anime-gallery" class="nav-link">Anime List</a></li>
+            <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+    </nav>
+    
+    <main>
+        <div class="container">
+            <section id="hero">
+                <div class="hero-content">
+                    <div class="greeting-chip">👋 Hello, Welcome!</div>
+                    <h1 class="hero-title">I'M RIEZE, <br><span>DEVELOPER</span> & GAMER</h1>
+                    <p class="hero-bio">
+                        Dengan ketertarikan tinggi pada teknologi dan bahasa pemrograman. 
+                        Sangat menyukai tantangan dalam coding, menonton anime, dan bermain game.
+                    </p>
+                    <a href="#contact" class="btn">Hubungi Saya &rarr;</a>
+                </div>
+                <div class="https://files.cloudkuimages.guru/images/rj0OWvcu.jpg"></div>
+            </section>
+            
+            <section id="skills">
+                <h2 class="section-title">My Skills</h2>
+                <div class="skills-container">
+                    <div>
+                        <div class="progress-bar">
+                            <div class="label"><span>Frontend Development</span><span>85%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: 85%;"></div></div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="label"><span>Gaming & Strategy</span><span>70%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: 70%;"></div></div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="label"><span>Backend Developer</span><span>95%</span></div>
+                            <div class="progress-track"><div class="progress-fill" style="width: 95%;"></div></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="text-align:center; margin-bottom: 20px; font-size:1.5rem;">Technologies I Use</h3>
+                        <div class="tech-grid">
+                            <div class="tech-tag">JavaScript</div>
+                            <div class="tech-tag">TypeScript</div>
+                            <div class="tech-tag">HTML5</div>
+                            <div class="tech-tag">CSS3</div>
+                            <div class="tech-tag">React</div>
+                            <div class="tech-tag">Node.js</div>
+                            <div class="tech-tag">PHP</div>
+                            <div class="tech-tag">SQL</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="anime-gallery">
+                <h2 class="section-title">Anime Favorite</h2>
+                <div class="gallery-grid">
+                    <div class="gallery-card"><h4>Attack on Titan</h4><p>Rating: <span class="rating">9.1/10</span></p></div>
+                    <div class="gallery-card"><h4>Frieren: Beyond Journey's End</h4><p>Rating: <span class="rating">9.4/10</span></p></div>
+                    <div class="gallery-card"><h4>Jujutsu Kaisen</h4><p>Rating: <span class="rating">8.7/10</span></p></div>
+                    <div class="gallery-card"><h4>Vinland Saga</h4><p>Rating: <span class="rating">8.9/10</span></p></div>
+                    <div class="gallery-card"><h4>Steins;Gate</h4><p>Rating: <span class="rating">9.1/10</span></p></div>
+                    <div class="gallery-card"><h4>Zom 100</h4><p>Rating: <span class="rating">8.0/10</span></p></div>
+                    <div class="gallery-card"><h4>Oshi no Ko</h4><p>Rating: <span class="rating">8.8/10</span></p></div>
+                    <div class="gallery-card"><h4>Takopi's Original Sin</h4><p>Rating: <span class="rating">8.5/10</span></p></div>
+                </div>
+            </section>
+            
+            <section id="contact">
+                <h2 class="section-title">Get In Touch</h2>
+                <div class="contact-links">
+                    <a href="https://github.com/secret" target="_blank" title="GitHub">
+                        <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+                        <span>GitHub</span>
+                    </a>
+                    <a href="mailto:rieze.dev@xxx.dev" title="Email">
+                         <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/></svg>
+                        <span>Email</span>
+                    </a>
+                    <a href="#" onclick="alert('Donasi DANA: 081547107318. Terima kasih!');" title="Donasi via DANA">
+                         <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6zm4 0v3h12V6H6zm0 5v2h8v-2H6z"/></svg>
+                        <span>Donasi DANA</span>
+                    </a>
+                    <a href="#" onclick="alert('Donasi Pulsa: 081547107318. Terima kasih!');" title="Donasi via Pulsa">
+                         <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M17 1H7c-1.1 0-1.99.9-1.99 2v18c0 1.1.89 2 1.99 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm-5 18c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-5H9V5h6v9z"/></svg>
+                        <span>Donasi Pulsa</span>
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; By Rieze 2025, Made With Love.</p>
+    </footer>
+
+    <div id="music-player">
+        <img src="amba1.jpg" alt="Album Art" id="album-art">
+        <div class="song-details">
+            <div id="song-title">Blinding Lights</div>
+            <div id="song-artist">The Weeknd</div>
+        </div>
+        <button id="play-pause-btn">
+            <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+            <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
+        </button>
+        <div class="progress-container">
+            <span class="time-display" id="current-time">0:00</span>
+            <div class="progress-bar-wrapper" id="progress-bar-wrapper">
+                <div class="progress-bar-fill" id="progress-bar-fill"></div>
+            </div>
+            <span class="time-display" id="total-duration">0:00</span>
+        </div>
+    </div>
+
+    <audio id="background-music" src="amba2.mp3" loop></audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Menu Logic ---
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuOverlay = document.getElementById('menu-overlay');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const header = document.querySelector('.header');
+
+            const toggleMenu = () => {
+                document.body.classList.toggle('menu-open');
+                menuOverlay.classList.toggle('open');
+            };
+
+            menuToggle.addEventListener('click', toggleMenu);
+            menuOverlay.addEventListener('click', toggleMenu);
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (document.body.classList.contains('menu-open')) {
+                        toggleMenu();
+                    }
+                });
+            });
+
+            // --- Header Shadow on Scroll ---
+            window.addEventListener('scroll', () => {
+                header.classList.toggle('scrolled', window.scrollY > 10);
+            });
+
+            // --- Scroll Animations ---
+            const sections = document.querySelectorAll('section');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            sections.forEach(section => observer.observe(section));
+
+            // --- Music Player Logic ---
+            const music = document.getElementById('background-music');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const progressBarFill = document.getElementById('progress-bar-fill');
+            const progressBarWrapper = document.getElementById('progress-bar-wrapper');
+            const currentTimeEl = document.getElementById('current-time');
+            const totalDurationEl = document.getElementById('total-duration');
+            const musicPlayer = document.getElementById('music-player');
+
+            // Set body padding to avoid content being hidden by player
+            document.body.style.paddingBottom = `${musicPlayer.offsetHeight + 20}px`;
+
+            function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+
+            function updateProgress() {
+                const { duration, currentTime } = music;
+                const progressPercent = (currentTime / duration) * 100;
+                progressBarFill.style.width = `${progressPercent}%`;
+                currentTimeEl.textContent = formatTime(currentTime);
+            }
+            
+            function setSongData() {
+                 if(!isNaN(music.duration)) {
+                    totalDurationEl.textContent = formatTime(music.duration);
+                }
+            }
+
+            playPauseBtn.addEventListener('click', () => {
+                const isPlaying = !music.paused;
+                if (isPlaying) {
+                    music.pause();
+                    playPauseBtn.classList.remove('playing');
+                } else {
+                    music.play();
+                    playPauseBtn.classList.add('playing');
+                }
+            });
+
+            music.addEventListener('timeupdate', updateProgress);
+            music.addEventListener('loadedmetadata', setSongData);
+
+            progressBarWrapper.addEventListener('click', (e) => {
+                const width = progressBarWrapper.clientWidth;
+                const clickX = e.offsetX;
+                const duration = music.duration;
+                if(!isNaN(duration)){
+                    music.currentTime = (clickX / width) * duration;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
